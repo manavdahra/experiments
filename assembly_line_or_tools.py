@@ -10,7 +10,7 @@ def solve_assembly_line_assignment(lines, containers):
     all_items = list(all_items)
     K = len(all_items)
 
-    solver = pywraplp.Solver.CreateSolver("BOP_INTEGER_PROGRAMMING")
+    solver = pywraplp.Solver.CreateSolver("SAT_INTEGER_PROGRAMMING")
     if not solver:
         return
 
@@ -91,29 +91,28 @@ def solve_assembly_line_assignment(lines, containers):
     print(f"Lines: {len(lines)}")
     print(f"Items: {len(all_items)}")
     print(f"Total size: {sum([line["size"] for line in lines])}")
+    containers_used = 0
+    items_assigned = set()
     for line_key in assignment:
+        containers_used += len(assignment[line_key]["containers"])
+        items_assigned = items_assigned.union(set(assignment[line_key]["items"]))
         print(f"Line - {line_key}[{assignment[line_key]["available_size"]}/{assignment[line_key]["size"]}] Containers: {assignment[line_key]["containers"]} Items: {assignment[line_key]["items"]}")
+
+    print(f"Containers used: {containers_used}/{len(containers)}")
+    print(f"Items assigned: {len(items_assigned)}/{len(all_items)}")
                 
 
 with open('./data.json') as f:
-    # data = json.load(f)
-    # lines = []
-    # for line in data["lines"]:
-    #     lines.append({"line_key": line["lineKey"], "size": line["size"]})
-    # containers = []
-    # for container in data["containers"]:
-    #     container_items = container["items"]
-    #     items = []
-    #     for item in container_items:
-    #         items.append(f"{item["skuCode"]}-{item["part"]}")
-    #     containers.append({"sku_code": container["skuCode"], "items": set(items)})
+    data = json.load(f)
+    lines = []
+    for line in data["lines"]:
+        lines.append({"line_key": line["lineKey"], "size": line["size"]})
+    containers = []
+    for container in data["containers"]:
+        container_items = container["items"]
+        items = []
+        for item in container_items:
+            items.append(f"{item["skuCode"]}-{item["part"]}")
+        containers.append({"sku_code": container["skuCode"], "items": set(items)})
 
-    lines = [{"line_key": "1", "size": 3}, {"line_key": "2", "size": 4}, {"line_key": "3", "size": 4}]
-    containers = [
-        {"sku_code": "C1", "items": {1, 2, 3}}, 
-        {"sku_code": "C2", "items": {2, 3, 4}}, 
-        {"sku_code": "C3", "items": {1, 3, 5}}, 
-        {"sku_code": "C4", "items": {4, 5}}, 
-        {"sku_code": "C5", "items": {1, 2, 4, 5}},
-    ]  # Products as sets of items
     solve_assembly_line_assignment(lines, containers)
